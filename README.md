@@ -20,7 +20,7 @@
    duration: number
      说明: 用于控制事件的触发频率
      默认值: 500 - 500ms
-   safe-space: number // 安全距离 默认5
+   safe-space: number
      说明: 用于控制触发事件的间距
      默认值: 5 - 5px
     ```
@@ -37,9 +37,9 @@
       let scrollView = document.querySelector("#scroll-view");
       scrollView.addEventListener("reachtop", () => {
         // 滚动到顶部...
-      })
-      scrollView.addEventListener("reachtop", () => {
+      });
+      scrollView.addEventListener("reachbottom", () => {
         // 滚动到底部...
-      })
+      });
     </script> 
    ```

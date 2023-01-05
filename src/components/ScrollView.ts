@@ -1,3 +1,4 @@
+import TriggerComponent from "@/base/TriggerComponent";
 import { getStyleText, getUnitStyleValue } from "@/utils/common";
 
 const enum EVENT_TYPE {
@@ -12,7 +13,7 @@ class ScrollViewEvent extends Event {
   }
 }
 
-export default class ScrollView extends HTMLElement{
+export default class ScrollView extends TriggerComponent<ScrollViewEvent> {
   public static readonly _name: string = "scroll-view";
 
   private safeSpace: number = 5;
@@ -20,16 +21,6 @@ export default class ScrollView extends HTMLElement{
   private beforeScrollTop: number = 0;
   private isTriggerTopEvent: boolean = true;
   private isTriggerBottomEvent: boolean = true;
-
-  private readonly htmlElement: HTMLElement;
-  private readonly styleElement: HTMLElement;
-
-  constructor() {
-    super();
-    this.htmlElement = this.createHTMLElement();
-    this.styleElement = this.createStyleElement();
-    this.render();
-  }
 
   private static get observedAttributes(): Array<string> {
     return [ "height", "duration", "safe-space" ];
@@ -70,7 +61,7 @@ export default class ScrollView extends HTMLElement{
         // 到达底部
         this.isTriggerBottomEvent = false;
         try {
-          this.triggerEvent(EVENT_TYPE.REACH_BOTTOM, {});
+          this.triggerEvent(EVENT_TYPE.REACH_BOTTOM);
         } finally {
           setTimeout(() => this.isTriggerBottomEvent = true, this.duration);
         }
@@ -80,7 +71,7 @@ export default class ScrollView extends HTMLElement{
         // 到达顶部
         this.isTriggerTopEvent = false;
         try {
-          this.triggerEvent(EVENT_TYPE.REACH_TOP, {});
+          this.triggerEvent(EVENT_TYPE.REACH_TOP);
         } finally {
           setTimeout(() => this.isTriggerTopEvent = true, this.duration);
         }
@@ -89,17 +80,16 @@ export default class ScrollView extends HTMLElement{
     this.beforeScrollTop = scrollTop;
   }
 
-  private triggerEvent(eventType: EVENT_TYPE, eventData: AnyObject): void {
+  protected createEventInstance(eventType: EVENT_TYPE): ScrollViewEvent {
     const event: ScrollViewEvent = new ScrollViewEvent(eventType, {
       bubbles: false,
-      cancelable: false,
-      composed: false
-    });
-    event.eventData = eventData;
-    this.dispatchEvent(event);
+      composed: false,
+      cancelable: false
+    })
+    return event;
   }
 
-  private createHTMLElement(): HTMLElement {
+  protected createHTMLElement(): HTMLElement {
     if(this.htmlElement) {
       return this.htmlElement;
     } else {
@@ -110,7 +100,7 @@ export default class ScrollView extends HTMLElement{
     }
   }
 
-  private createStyleElement(): HTMLElement {
+  protected createStyleElement(): HTMLElement {
     if(this.styleElement) {
       return this.styleElement;
     } else {
@@ -122,12 +112,5 @@ export default class ScrollView extends HTMLElement{
       });
       return styleElement;
     }
-  }
-
-  // 渲染函数
-  private render(): void {
-    const shadowElement: ShadowRoot = this.attachShadow({mode: "closed"});
-    shadowElement.appendChild(this.styleElement);
-    shadowElement.appendChild(this.htmlElement);
   }
 }
