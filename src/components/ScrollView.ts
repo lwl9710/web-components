@@ -14,13 +14,16 @@ class ScrollViewEvent extends Event {
 
 export default class ScrollView extends HTMLElement{
   public static readonly _name: string = "scroll-view";
-  private duration: number = 500;
+
   private safeSpace: number = 5;
+  private duration: number = 500;
+  private beforeScrollTop: number = 0;
   private isTriggerTopEvent: boolean = true;
   private isTriggerBottomEvent: boolean = true;
-  private htmlElement: HTMLElement;
-  private styleElement: HTMLElement;
-  private beforeScrollTop: number = 0;
+
+  private readonly htmlElement: HTMLElement;
+  private readonly styleElement: HTMLElement;
+
   constructor() {
     super();
     this.htmlElement = this.createHTMLElement();
@@ -62,7 +65,7 @@ export default class ScrollView extends HTMLElement{
     const { scrollTop } = this.htmlElement;
     if(scrollTop - this.beforeScrollTop > 0) {
       const { scrollHeight, clientHeight } = this.htmlElement;
-      const maxTop = scrollHeight - clientHeight;
+      const maxTop: number = scrollHeight - clientHeight;
       if((maxTop - scrollTop) <= this.safeSpace && this.isTriggerBottomEvent) {
         // 到达底部
         this.isTriggerBottomEvent = false;
@@ -87,7 +90,7 @@ export default class ScrollView extends HTMLElement{
   }
 
   private triggerEvent(eventType: EVENT_TYPE, eventData: AnyObject): void {
-    const event = new ScrollViewEvent(eventType, {
+    const event: ScrollViewEvent = new ScrollViewEvent(eventType, {
       bubbles: false,
       cancelable: false,
       composed: false
@@ -100,11 +103,10 @@ export default class ScrollView extends HTMLElement{
     if(this.htmlElement) {
       return this.htmlElement;
     } else {
-      const ScrollViewElement: HTMLElement = document.createElement("div");
-      ScrollViewElement.className = "scroll-view";
-      ScrollViewElement.innerHTML = "<slot></slot>";
-      this.htmlElement = ScrollViewElement;
-      return ScrollViewElement;
+      const scrollViewElement: HTMLElement = document.createElement("div");
+      scrollViewElement.className = "scroll-view";
+      scrollViewElement.innerHTML = "<slot></slot>";
+      return scrollViewElement;
     }
   }
 
@@ -112,8 +114,7 @@ export default class ScrollView extends HTMLElement{
     if(this.styleElement) {
       return this.styleElement;
     } else {
-      const styleElement = document.createElement("style");
-      this.styleElement = styleElement;
+      const styleElement: HTMLElement = document.createElement("style");
       styleElement.textContent = getStyleText(".scroll-view", {
         overflow: "auto",
         width: "100%",

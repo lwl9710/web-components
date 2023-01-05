@@ -24,7 +24,7 @@
      说明: 用于控制触发事件的间距
      默认值: 5 - 5px
     ```
-   <font color="red">* 只有"实际的内容高度"超过"显示的内容高度"才会产生滚动条和触发事件</font>
+   <span style="color: red">* 只有"实际的内容高度"超过"显示的内容高度"才会产生滚动条和触发事件</span>
    * 事件
     ```text
      reachtop：滚动到顶部
@@ -34,12 +34,12 @@
    ```html
     <scroll-view id="scroll-view" height="600" duration="1000" safe-space="10"></scroll-view>
     <script>
-      let scrollView = document.querySelector(".scroll-view");
+      let scrollView = document.querySelector("#scroll-view");
       scrollView.addEventListener("reachtop", () => {
         // 滚动到顶部...
       })
       scrollView.addEventListener("reachtop", () => {
         // 滚动到底部...
       })
-   </script> 
+    </script> 
    ```
