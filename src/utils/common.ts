@@ -9,8 +9,11 @@ export function valueToString(value: StringNumber): string {
 // 对象转样式文本
 export function getStyleText(selector: string, styleObject: AnyObject<StringNumber>) {
   const styleTextContent = Object.entries(styleObject).map(entry => {
-    const property: string = entry[0];
     const value: string = getUnitStyleValue(entry[1]);
+    let property: string = entry[0];
+    property = property.replace(/[A-Z]/g, letter => {
+      return `-${ letter.toLowerCase() }`;
+    });
     return `${ property }: ${ value }`
   }).join(";");
   return `${selector} {${ styleTextContent }}`
