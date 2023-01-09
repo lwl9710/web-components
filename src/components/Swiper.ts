@@ -92,18 +92,23 @@ export class SwiperWrapper extends TriggerComponent<ChangeEvent> {
 
     this.moveDistance = this.htmlElement.clientWidth;
     this.maxCurrent = this.childElementCount;
+    if(this.moveElement) {
+      if(this.maxCurrent > 0) {
+        this.moveElement.style.width = (this.moveDistance * (this.maxCurrent + 1)) + "px";
+      } else {
+        this.moveElement.style.width = "0px";
+      }
+    }
     if(this.maxCurrent > 0) {
       const items: Array<HTMLElement> = Array.from(this.querySelectorAll(SwiperItem._name));
       this.lastElement = items[0].cloneNode(true) as HTMLElement;
       this.items = items;
       items.push(this.lastElement);
       this.appendChild(this.lastElement);
-      if(this.moveElement) {
-        this.moveElement.style.width = (this.moveDistance * (this.maxCurrent + 1)) + "px";
-      }
       items.forEach(element => element.setAttribute("width", this.moveDistance + "px"));
       this.startMove();
     } else {
+      console.log("停止动画");
       this.items = [];
     }
   }
