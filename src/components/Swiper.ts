@@ -1,8 +1,23 @@
 import BaseComponent from "@/base/BaseComponent";
 import {getStyleText, getUnitStyleValue} from "@/utils/common";
+import TriggerComponent from "@/base/TriggerComponent";
 
+function isSwiperWrapper(element: Element | null): element is SwiperWrapper {
+  return element !== null && element.tagName === "SWIPER-WRAPPER";
+}
 
-export class SwiperWrapper extends BaseComponent {
+class ChangeEvent extends Event {
+  [propName: string]: any
+  constructor(type: string, eventInitDict?: EventInit) {
+    super(type, eventInitDict);
+  }
+}
+
+const enum EVENT_TYPE {
+  ChangeEvent = "change"
+}
+
+export class SwiperWrapper extends TriggerComponent<ChangeEvent> {
   public static readonly _name = "swiper-wrapper";
   private lastElement?: HTMLElement;
   private moveElement?: HTMLElement;
@@ -10,20 +25,45 @@ export class SwiperWrapper extends BaseComponent {
   private timerID: any = -1;
   private duration: number = 3000;
   private animationTime: number = 300;
-  private current: number = 0;
   private maxCurrent: number = 0;
+  private _current: number = 0;
+  private items: Array<HTMLElement> = [];
+
+  public get current(): number {
+    return this._current;
+  }
+
+  public set current(newValue: number) {
+    if(this.moveElement && newValue <= this.maxCurrent) {
+      this._current = newValue;
+      this.moveElement.style.transform = `translateX(-${ this.moveDistance * this.current }px)`;
+      if(this._current < this.maxCurrent) {
+        this.triggerEvent(EVENT_TYPE.ChangeEvent, { current: this._current });
+      }
+    }
+  }
+
+  public toCurrent(newValue: number, isAnimate: boolean = true): void {
+    if(this.moveElement) {
+      if(isAnimate) {
+        this.moveElement.style.transition = `transform linear ${ this.animationTime }ms`;
+      } else {
+        this.moveElement.style.transition = "none";
+      }
+      this.current = newValue;
+    }
+  }
 
   private static get observedAttributes(): Array<string> {
     return [ "duration", "animation-time" ];
   }
 
   private attributeChangedCallback(propName: string, oldValue: string, newValue: string): void {
+    console.log(`属性变更[${ propName }]======${ newValue }`);
     switch(propName) {
       case "duration":
         if(/^\d+$/.test(newValue)) {
           this.duration = parseInt(newValue);
-          this.stopMove();
-          this.startMove();
         }
         break;
       case "animation-time":
@@ -35,53 +75,62 @@ export class SwiperWrapper extends BaseComponent {
   }
 
   private connectedCallback() {
-    const moveElement: HTMLElement = this.htmlElement.querySelector(".move-element") as HTMLElement;
-    const items: NodeList = this.querySelectorAll(SwiperItem._name);
-    const itemWidth = this.htmlElement.clientWidth + "px";
-    this.moveDistance = this.htmlElement.clientWidth;
-    this.moveElement = moveElement;
-    this.maxCurrent = items.length;
-    items.forEach(item => {
-      (item as HTMLElement).setAttribute("width", itemWidth);
-    });
-    if(this.maxCurrent > 0) {
-      this.moveElement.style.width = `${ (this.maxCurrent + 1) * this.moveDistance }px`;
-      this.lastElement = items[0].cloneNode(true) as HTMLElement;
-      this.lastElement.setAttribute("width", itemWidth);
-      moveElement.appendChild(this.lastElement);
-    }
-    this.startMove();
+    this.moveElement = this.htmlElement.querySelector(".move-element") as HTMLElement;
+    this.moveElement.className = "move-element";
   }
 
   private disconnectedCallback() {
     clearInterval(this.timerID);
   }
 
-  private startMove() {
-    this.timerID = setInterval(() => {
-      if(this.current < this.maxCurrent && this.moveElement) {
-        this.current++;
-        this.moveElement.style.transform = `translateX(-${ this.moveDistance * this.current }px)`;
-        this.moveElement.style.transition = `transform linear ${ this.animationTime }ms`;
-        if(this.current === this.maxCurrent) {
-          setTimeout(() => {
-            this.resetCurrent();
-          }, this.animationTime + 10);
-        }
-      }
-    }, this.duration);
-  }
+  public refresh() {
+    clearInterval(this.timerID);
+    if(this.lastElement) {
+      this.removeChild(this.lastElement);
+    }
+    this.toCurrent(0, false);
 
-  private resetCurrent() {
-    if(this.moveElement) {
-      this.current = 0;
-      this.moveElement.style.transform = `translateX(0)`;
-      this.moveElement.style.transition = "none";
+    this.moveDistance = this.htmlElement.clientWidth;
+    this.maxCurrent = this.childElementCount;
+    if(this.maxCurrent > 0) {
+      const items: Array<HTMLElement> = Array.from(this.querySelectorAll(SwiperItem._name));
+      this.lastElement = items[0].cloneNode(true) as HTMLElement;
+      this.items = items;
+      items.push(this.lastElement);
+      this.appendChild(this.lastElement);
+      if(this.moveElement) {
+        this.moveElement.style.width = (this.moveDistance * (this.maxCurrent + 1)) + "px";
+      }
+      items.forEach(element => element.setAttribute("width", this.moveDistance + "px"));
+      this.startMove();
+    } else {
+      this.items = [];
     }
   }
 
-  private stopMove() {
-    clearInterval(this.timerID);
+  private startMove(): void {
+    this.timerID = setInterval(() => {
+      if(this.current < this.maxCurrent) {
+        this.toCurrent(this.current + 1);
+      }
+      if(this.current === this.maxCurrent) {
+        setTimeout(() => this.toCurrent(0, false), this.animationTime + 10);
+      }
+    }, this.duration + this.animationTime + 15);
+  }
+
+  public onSwiperItemConnected(swiperItem: SwiperItem): void {
+    // swiper-items 挂载
+    if(this.lastElement !== swiperItem && !this.items.includes(swiperItem)) {
+      this.refresh();
+    }
+  }
+
+  public onSwiperItemDisconnected(swiperItem: SwiperItem): void {
+    // swiper-items 卸载
+    if(this.lastElement !== swiperItem && this.items.includes(swiperItem)) {
+      this.refresh();
+    }
   }
 
   protected createHTMLElement(): HTMLElement {
@@ -116,12 +165,36 @@ export class SwiperWrapper extends BaseComponent {
     styleElement.textContent = swiperWrapperStyleText + moveElementStyleText;
     return styleElement;
   }
+
+  protected createEventInstance<D = any>(eventType: string, eventData?: D): ChangeEvent {
+    const event = new ChangeEvent(eventType, {
+      bubbles: false,
+      cancelable: false,
+      composed: false
+    });
+    event.eventData = eventData;
+    return event;
+  }
 }
 
 export class SwiperItem extends BaseComponent {
-  public static readonly _name = "swiper-item";
+  public static readonly _name: string = "swiper-item";
+  private swiperWrapper?: SwiperWrapper;
   constructor() {
-    super("open");
+    super("closed");
+  }
+
+  connectedCallback() {
+    setTimeout(() => {
+      if(isSwiperWrapper(this.parentElement)) {
+        this.swiperWrapper = this.parentElement as SwiperWrapper;
+        this.swiperWrapper.onSwiperItemConnected(this);
+      }
+    });
+  }
+
+  disconnectedCallback() {
+    this.swiperWrapper?.onSwiperItemDisconnected(this);
   }
 
   private static get observedAttributes(): Array<string> {
