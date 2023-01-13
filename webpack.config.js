@@ -46,7 +46,12 @@ module.exports = function(env) {
         },
         {
           test: /\.(jpg|jpeg|png|gif|webp)$/i,
-          type: "asset/resource",
+          type: "asset",
+          parser: {
+            dataUrlCondition: {
+              maxSize: 20 * 1024
+            }
+          },
           generator: {
             filename: "images/[name].[contenthash].[ext]"
           }

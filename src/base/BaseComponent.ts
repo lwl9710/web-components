@@ -1,5 +1,5 @@
-export default abstract class BaseComponent extends HTMLElement {
-  protected readonly htmlElement: HTMLElement;
+export default abstract class BaseComponent<E extends HTMLElement = HTMLElement> extends HTMLElement {
+  protected readonly htmlElement: E;
   protected readonly styleElement: HTMLElement;
   private readonly mode: ShadowRootMode
 
@@ -11,7 +11,7 @@ export default abstract class BaseComponent extends HTMLElement {
     this.render();
   }
 
-  protected abstract createHTMLElement(): HTMLElement;
+  protected abstract createHTMLElement(): E;
   protected abstract createStyleElement(): HTMLElement;
 
   protected render(): void {
