@@ -15,11 +15,29 @@
   </style>
 </head>
 <body>
-  <div style="width: 300px; height: 200px;border: 1px solid black">
+<scroll-view id="scrollView" height="800">
+  <div style="margin-top: 10px; width: 300px; height: 200px; background-color:#eee;">
+    <swiper-wrapper>
+      <swiper-item>1</swiper-item>
+      <swiper-item>2</swiper-item>
+      <swiper-item>3</swiper-item>
+      <swiper-item>4</swiper-item>
+    </swiper-wrapper>
+  </div>
+  <div style="margin-top: 10px; width: 300px; height: 200px;border: 1px solid black">
     <video-player playsinline src="https://media.w3.org/2010/05/sintel/trailer.mp4"></video-player>
   </div>
+  <scroll-text text="这是一段用于测试的文字信息这是一段用于测试的文字信息这是一段用于测试的文字信息这是一段用于测试的文字信息这是一段用于测试的文字信息这是一段用于测试的文字信息这是一段用于测试的文字信息这是一段用于测试的文字信息这是一段用于测试的文字信息这是一段用于测试的文字信息"></scroll-text>
+  <div style="height: 500px"></div>
+</scroll-view>
 <script>
-
+  let scrollEl = document.getElementById("scrollView");
+  scrollEl.addEventListener("reachbottom", () => {
+    window.alert("滚动到了底部");
+  });
+  scrollEl.addEventListener("reachtop", () => {
+    window.alert("滚动到了顶部");
+  });
 </script>
 </body>
 </html>

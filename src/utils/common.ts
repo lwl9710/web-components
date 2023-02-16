@@ -74,7 +74,7 @@ export function requestFullScreen(element: any): void {
     element.webkitEnterFullscreen();
   }
  }
- 
+
  // 退出全屏
  export function exitFull(): void {
   if (document.exitFullscreen) {
@@ -89,10 +89,20 @@ export function requestFullScreen(element: any): void {
     (document as any).webkitExitFullscreen();
   }
  }
- 
+
 //判断是否全屏
 export function IsFull(): boolean {
   const fullscreenElement = document.fullscreenElement || (document as any).mozFullscreenElement || (document as any).webkitFullscreenElement;
   const fullscreenEnabled = document.fullscreenEnabled || (document as any).mozFullscreenEnabled || (document as any).webkitFullscreenEnabled;
   return fullscreenElement || fullscreenEnabled;
+}
+
+// 定义不可变属性
+export function defineFinalProperty(obj: any, key: string, value: any): void {
+  Object.defineProperty(obj, key, {
+    value,
+    writable: false,
+    enumerable: false,
+    configurable: false
+  });
 }
